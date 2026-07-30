@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { ChevronDown, LayoutGrid, RotateCcw, Search, Table2 } from "lucide-react";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -298,8 +298,8 @@ function Explorador() {
                 </TableHeader>
                 <TableBody>
                   {visibles.map((c, i) => (
-                    <>
-                      <TableRow key={c.id}>
+                    <Fragment key={c.id}>
+                      <TableRow>
                         <TableCell>
                           <MoleculeThumb seed={i + 1} className="h-9 w-9" />
                         </TableCell>
@@ -329,7 +329,7 @@ function Explorador() {
                         </TableCell>
                       </TableRow>
                       {expandida === c.id ? (
-                        <TableRow key={`${c.id}-detalle`} className="bg-surface/70">
+                        <TableRow className="bg-surface/70">
                           <TableCell colSpan={10}>
                             <div className="grid gap-4 py-2 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
                               <div className="min-w-0 space-y-2">
@@ -357,7 +357,7 @@ function Explorador() {
                           </TableCell>
                         </TableRow>
                       ) : null}
-                    </>
+                    </Fragment>
                   ))}
                 </TableBody>
               </Table>
