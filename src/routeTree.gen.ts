@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ExploradorRouteImport } from './routes/explorador'
 import { Route as PredictorRouteImport } from './routes/predictor'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExploradorRoute = ExploradorRouteImport.update({
+  id: '/explorador',
+  path: '/explorador',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PredictorRoute = PredictorRouteImport.update({
@@ -25,27 +31,31 @@ const PredictorRoute = PredictorRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/explorador': typeof ExploradorRoute
   '/predictor': typeof PredictorRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/explorador': typeof ExploradorRoute
   '/predictor': typeof PredictorRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/explorador': typeof ExploradorRoute
   '/predictor': typeof PredictorRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/predictor'
+  fullPaths: '/' | '/explorador' | '/predictor'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/predictor'
-  id: '__root__' | '/' | '/predictor'
+  to: '/' | '/explorador' | '/predictor'
+  id: '__root__' | '/' | '/explorador' | '/predictor'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ExploradorRoute: typeof ExploradorRoute
   PredictorRoute: typeof PredictorRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/explorador': {
+      id: '/explorador'
+      path: '/explorador'
+      fullPath: '/explorador'
+      preLoaderRoute: typeof ExploradorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/predictor': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ExploradorRoute: ExploradorRoute,
   PredictorRoute: PredictorRoute,
 }
 export const routeTree = rootRouteImport
