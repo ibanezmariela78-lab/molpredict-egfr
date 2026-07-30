@@ -10,33 +10,102 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EspacioQuimicoRouteImport } from './routes/espacio-quimico'
+import { Route as ExploradorRouteImport } from './routes/explorador'
+import { Route as ModeloRouteImport } from './routes/modelo'
+import { Route as PredictorRouteImport } from './routes/predictor'
+import { Route as SobreElProyectoRouteImport } from './routes/sobre-el-proyecto'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EspacioQuimicoRoute = EspacioQuimicoRouteImport.update({
+  id: '/espacio-quimico',
+  path: '/espacio-quimico',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExploradorRoute = ExploradorRouteImport.update({
+  id: '/explorador',
+  path: '/explorador',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ModeloRoute = ModeloRouteImport.update({
+  id: '/modelo',
+  path: '/modelo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PredictorRoute = PredictorRouteImport.update({
+  id: '/predictor',
+  path: '/predictor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SobreElProyectoRoute = SobreElProyectoRouteImport.update({
+  id: '/sobre-el-proyecto',
+  path: '/sobre-el-proyecto',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/espacio-quimico': typeof EspacioQuimicoRoute
+  '/explorador': typeof ExploradorRoute
+  '/modelo': typeof ModeloRoute
+  '/predictor': typeof PredictorRoute
+  '/sobre-el-proyecto': typeof SobreElProyectoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/espacio-quimico': typeof EspacioQuimicoRoute
+  '/explorador': typeof ExploradorRoute
+  '/modelo': typeof ModeloRoute
+  '/predictor': typeof PredictorRoute
+  '/sobre-el-proyecto': typeof SobreElProyectoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/espacio-quimico': typeof EspacioQuimicoRoute
+  '/explorador': typeof ExploradorRoute
+  '/modelo': typeof ModeloRoute
+  '/predictor': typeof PredictorRoute
+  '/sobre-el-proyecto': typeof SobreElProyectoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/espacio-quimico'
+    | '/explorador'
+    | '/modelo'
+    | '/predictor'
+    | '/sobre-el-proyecto'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/espacio-quimico'
+    | '/explorador'
+    | '/modelo'
+    | '/predictor'
+    | '/sobre-el-proyecto'
+  id:
+    | '__root__'
+    | '/'
+    | '/espacio-quimico'
+    | '/explorador'
+    | '/modelo'
+    | '/predictor'
+    | '/sobre-el-proyecto'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  EspacioQuimicoRoute: typeof EspacioQuimicoRoute
+  ExploradorRoute: typeof ExploradorRoute
+  ModeloRoute: typeof ModeloRoute
+  PredictorRoute: typeof PredictorRoute
+  SobreElProyectoRoute: typeof SobreElProyectoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +117,52 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/espacio-quimico': {
+      id: '/espacio-quimico'
+      path: '/espacio-quimico'
+      fullPath: '/espacio-quimico'
+      preLoaderRoute: typeof EspacioQuimicoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/explorador': {
+      id: '/explorador'
+      path: '/explorador'
+      fullPath: '/explorador'
+      preLoaderRoute: typeof ExploradorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/modelo': {
+      id: '/modelo'
+      path: '/modelo'
+      fullPath: '/modelo'
+      preLoaderRoute: typeof ModeloRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/predictor': {
+      id: '/predictor'
+      path: '/predictor'
+      fullPath: '/predictor'
+      preLoaderRoute: typeof PredictorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sobre-el-proyecto': {
+      id: '/sobre-el-proyecto'
+      path: '/sobre-el-proyecto'
+      fullPath: '/sobre-el-proyecto'
+      preLoaderRoute: typeof SobreElProyectoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  EspacioQuimicoRoute: EspacioQuimicoRoute,
+  ExploradorRoute: ExploradorRoute,
+  ModeloRoute: ModeloRoute,
+  PredictorRoute: PredictorRoute,
+  SobreElProyectoRoute: SobreElProyectoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
