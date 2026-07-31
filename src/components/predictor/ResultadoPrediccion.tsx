@@ -22,7 +22,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { DescriptorCard } from "@/components/molecular/DescriptorCard";
-import { MoleculeArt, MoleculeThumb } from "@/components/molecular/MoleculeArt";
+import { MoleculeThumb } from "@/components/molecular/MoleculeArt";
+import { MoleculeRender } from "@/components/molecular/MoleculeRender";
 import { ScientificDisclaimer } from "@/components/common/ScientificDisclaimer";
 import { ChartPanel } from "@/components/common/ChartPanel";
 import {
@@ -76,7 +77,7 @@ function MedidorDominio({ valor }: { valor: number }) {
   );
 }
 
-export function ResultadoPrediccion({ smiles }: { smiles: string }) {
+export function ResultadoPrediccion({ smiles, svg }: { smiles: string; svg?: string }) {
   const [copiado, setCopiado] = useState(false);
   const p = PREDICCION_DEMO;
   const potencia = Math.min(100, Math.max(0, ((p.pIC50 - 4) / 6) * 100));
@@ -103,7 +104,7 @@ export function ResultadoPrediccion({ smiles }: { smiles: string }) {
           <CardContent className="space-y-4">
             <div className="grid place-items-center rounded-xl border border-border bg-surface/70 hex-pattern p-4">
               <div className="h-40 w-40">
-                <MoleculeArt seed={3} />
+                <MoleculeRender svg={svg} seed={3} />
               </div>
               <p className="text-[11px] text-muted-foreground">
                 Representación ilustrativa, no generada por RDKit.
