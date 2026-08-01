@@ -153,7 +153,7 @@ function Inicio() {
             </div>
 
             <Card className="card-soft absolute -left-2 top-4 gap-0.5 border-border/70 px-4 py-3 sm:left-0">
-              <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
+              <span className="text-[10px] tracking-wide text-muted-foreground">
                 pIC50 estimado
               </span>
               <span className="font-display text-xl font-semibold text-teal">7.21</span>

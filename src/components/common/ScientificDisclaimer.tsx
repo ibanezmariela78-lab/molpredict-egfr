@@ -19,7 +19,7 @@ export function ScientificDisclaimer({
       <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
       <p>
         {texto ??
-          "Esta herramienta es experimental. Los resultados simulados no reemplazan ensayos químicos, biológicos, toxicológicos, preclínicos ni clínicos."}
+          "Esta herramienta es experimental y educativa. Los resultados demostrativos o computacionales no reemplazan ensayos químicos, biológicos, toxicológicos, preclínicos ni clínicos, ni deben utilizarse para tomar decisiones médicas."}
       </p>
     </aside>
   );

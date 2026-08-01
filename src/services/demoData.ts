@@ -25,6 +25,7 @@ import {
 } from "@/data/prediccion";
 import { COMPUESTOS } from "@/data/compuestos";
 import { validarSmiles } from "@/utils/molecula";
+import { TEXTOS_DEMO } from "@/data/molpredictDemoData";
 
 const descriptoresApi = DESCRIPTORES.map((d) => ({
   clave: d.clave,
@@ -43,7 +44,7 @@ export async function demoValidate(smiles: string): Promise<ValidateResponse> {
   const v = validarSmiles(smiles);
   return {
     valido: v.valido,
-    mensaje: v.mensaje,
+    mensaje: v.valido ? TEXTOS_DEMO.validacionOk : v.mensaje,
     smilesCanonico: v.valido ? smiles.trim() : undefined,
     formula: v.valido ? PREDICCION_DEMO.formula : undefined,
   };
@@ -103,7 +104,7 @@ export async function demoSimilarity(limite: number): Promise<SimilaritySearchRe
 export async function demoModelInfo(): Promise<ModelInfo> {
   return {
     nombre: "QSAR Ensemble",
-    version: "v0.1 Demo",
+    version: "v0.1 (simulación)",
     algoritmo: "XGBoost + Random Forest",
     fechaEntrenamiento: "2025-01-01",
     fingerprint: "Morgan ECFP4 (2048 bits)",

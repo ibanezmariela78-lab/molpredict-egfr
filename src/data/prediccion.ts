@@ -7,7 +7,7 @@ export const PREDICCION_DEMO = {
   pIC50: 7.21,
   ic50nM: 61.7,
   confianza: "Media" as const,
-  modelo: "QSAR Ensemble v0.1 Demo",
+  modelo: "Simulación QSAR v0.1",
   similitudMaxima: 0.78,
   dominio: "Dentro del dominio",
 };
