@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { LoadingAnalysis } from "@/components/predictor/LoadingAnalysis";
 import { ResultadoPrediccion } from "@/components/predictor/ResultadoPrediccion";
 import { SMILES_EJEMPLOS } from "@/data/compuestos";
+import { TEXTOS_DEMO } from "@/data/molpredictDemoData";
 import {
   DEMO_MODE,
   mensajeAmigable,
@@ -133,7 +134,9 @@ function Predictor() {
                 className="min-h-24 resize-y font-mono text-sm"
               />
               <p id="smiles-ayuda" className="text-xs text-muted-foreground">
-                La validación es sintáctica y demostrativa; no utiliza RDKit todavía.
+                {DEMO_MODE
+                  ? TEXTOS_DEMO.ayudaSmiles
+                  : "La estructura se valida con RDKit en el servicio de predicción."}
               </p>
             </div>
 
@@ -217,7 +220,7 @@ function Predictor() {
             descripcion={errorMensaje ?? undefined}
             accion={
               <Button variant="outline" onClick={analizar}>
-                Reintentar
+                Reintentar análisis
               </Button>
             }
           />

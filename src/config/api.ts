@@ -18,6 +18,9 @@ export const DEMO_MODE = (raw["VITE_DEMO_MODE"] ?? "true").toLowerCase() !== "fa
 /** Tiempo máximo de espera por solicitud (ms). */
 export const API_TIMEOUT_MS = Number(raw["VITE_API_TIMEOUT_MS"] ?? 20000);
 
+/** Alias de DEMO_MODE: única fuente de verdad del modo demostración. */
+export const isDemoMode = DEMO_MODE;
+
 /** Indica si es posible realizar solicitudes reales. */
 export const API_CONFIGURADA = !DEMO_MODE && API_BASE_URL.length > 0;
 
