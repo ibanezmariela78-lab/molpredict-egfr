@@ -166,7 +166,7 @@ export function ResultadoPrediccion({ smiles, svg }: { smiles: string; svg?: str
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <span className="text-xs uppercase tracking-wide text-muted-foreground">
+              <span className="text-xs tracking-wide text-muted-foreground">
                 pIC50 estimado
               </span>
               <p className="font-display text-6xl font-semibold leading-none text-foreground">
@@ -222,10 +222,6 @@ export function ResultadoPrediccion({ smiles, svg }: { smiles: string; svg?: str
           {demo ? (
             <>
               <StatusBadge tono="info">Valores de referencia</StatusBadge>
-              <EducationalTooltip
-                texto={TEXTOS_DEMO.descriptoresNota}
-                etiqueta="los descriptores demostrativos"
-              />
             </>
           ) : null}
         </div>
