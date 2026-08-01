@@ -1,7 +1,16 @@
 import { FlaskConical } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { TEXTOS_DEMO } from "@/data/molpredictDemoData";
 
-export function DemoBanner({ className, texto }: { className?: string; texto?: string }) {
+export function DemoBanner({
+  className,
+  texto,
+  secundario,
+}: {
+  className?: string;
+  texto?: string;
+  secundario?: string;
+}) {
   return (
     <div
       className={cn(
@@ -10,7 +19,12 @@ export function DemoBanner({ className, texto }: { className?: string; texto?: s
       )}
     >
       <FlaskConical className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-      <p>{texto ?? "Modo demostración — resultados y métricas ilustrativas."}</p>
+      <div className="min-w-0 space-y-0.5">
+        <p>{texto ?? TEXTOS_DEMO.banner}</p>
+        <p className="text-xs text-muted-foreground">
+          {secundario ?? TEXTOS_DEMO.bannerSecundario}
+        </p>
+      </div>
     </div>
   );
 }
