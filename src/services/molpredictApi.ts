@@ -1,45 +1,27 @@
 /**
  * Capa centralizada de comunicación con la API FastAPI de MolPredict EGFR.
  *
- * Mientras DEMO_MODE esté activo, ninguna función realiza solicitudes de red:
- * devuelven los datos demostrativos actuales, sin mezclarlos con datos reales.
+ * Base de producción: https://molpredict-egfr-api--ibanezmariela78.replit.app
+ * Todas las rutas y esquemas provienen de /openapi.json.
  */
 
-import {
-  API_BASE_URL,
-  API_CONFIGURADA,
-  API_TIMEOUT_MS,
-  DEMO_MODE,
-  ENDPOINTS,
-} from "@/config/api";
+import { API_BASE_URL, API_CONFIGURADA, API_TIMEOUT_MS, DEMO_MODE, ENDPOINTS } from "@/config/api";
 import type {
   ApiError,
-  DatasetSummary,
-  DescriptorsRequest,
+  BackendErrorBody,
+  DatasetSummaryResponse,
   DescriptorsResponse,
   HealthResponse,
-  ModelInfo,
-  ModelMetrics,
-  PredictionRequest,
+  ModelInfoResponse,
+  ModelMetricsResponse,
   PredictionResponse,
-  RenderRequest,
+  RenderInput,
   RenderResponse,
-  SimilaritySearchRequest,
-  SimilaritySearchResponse,
-  ValidateRequest,
+  SimilarityInput,
+  SimilarityResponse,
+  SMILESInput,
   ValidateResponse,
 } from "@/types/api";
-import {
-  demoDatasetSummary,
-  demoDescriptors,
-  demoHealth,
-  demoModelInfo,
-  demoModelMetrics,
-  demoPrediction,
-  demoRender,
-  demoSimilarity,
-  demoValidate,
-} from "@/services/demoData";
 
 export const MENSAJES_ERROR: Record<ApiError["codigo"], string> = {
   smiles_invalido: "La estructura SMILES no es válida. Revisala e intentá nuevamente.",
@@ -47,20 +29,33 @@ export const MENSAJES_ERROR: Record<ApiError["codigo"], string> = {
     "El servicio de predicción no está disponible en este momento. Intentá más tarde.",
   error_conexion: "No pudimos conectarnos con el servicio. Verificá tu conexión e intentá de nuevo.",
   tiempo_agotado: "El análisis tardó demasiado. Intentá nuevamente en unos instantes.",
+  respuesta_inesperada: "El servicio devolvió una respuesta inesperada. Intentá nuevamente.",
+  error_validacion: "Los datos enviados no pudieron ser validados por el servicio.",
   error_inesperado: "Ocurrió un error inesperado durante el análisis. Intentá nuevamente.",
 };
 
-export function crearError(codigo: ApiError["codigo"], detalle?: string, status?: number): ApiError {
-  return { codigo, mensaje: MENSAJES_ERROR[codigo], detalle, status };
+export function crearError(
+  codigo: ApiError["codigo"],
+  detalle?: string,
+  status?: number,
+  mensaje?: string,
+): ApiError {
+  return { codigo, mensaje: mensaje ?? MENSAJES_ERROR[codigo], detalle, status };
 }
 
 export function esApiError(valor: unknown): valor is ApiError {
   return typeof valor === "object" && valor !== null && "codigo" in valor && "mensaje" in valor;
 }
 
-/** Mensaje seguro para mostrar al usuario (nunca detalles técnicos). */
+/** Mensaje seguro para mostrar al usuario (nunca detalles técnicos crudos). */
 export function mensajeAmigable(error: unknown): string {
   return esApiError(error) ? error.mensaje : MENSAJES_ERROR.error_inesperado;
+}
+
+function mensajeBackend(cuerpo: BackendErrorBody | null): string | undefined {
+  if (!cuerpo) return undefined;
+  if (typeof cuerpo.message === "string" && cuerpo.message.trim()) return cuerpo.message;
+  return undefined;
 }
 
 async function request<T>(
@@ -77,6 +72,7 @@ async function request<T>(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
   if (opciones.signal) {
+    if (opciones.signal.aborted) controller.abort();
     opciones.signal.addEventListener("abort", () => controller.abort(), { once: true });
   }
 
@@ -89,16 +85,34 @@ async function request<T>(
     });
 
     if (!respuesta.ok) {
+      let cuerpo: BackendErrorBody | null = null;
+      try {
+        cuerpo = (await respuesta.json()) as BackendErrorBody;
+      } catch {
+        cuerpo = null;
+      }
+      const mensaje = mensajeBackend(cuerpo);
+
       if (respuesta.status === 422 || respuesta.status === 400) {
-        throw crearError("smiles_invalido", `HTTP ${respuesta.status}`, respuesta.status);
+        const esSmiles = cuerpo?.error === "smiles_invalido" || respuesta.status === 400;
+        throw crearError(
+          esSmiles ? "smiles_invalido" : "error_validacion",
+          `HTTP ${respuesta.status}`,
+          respuesta.status,
+          mensaje,
+        );
       }
       if (respuesta.status >= 500) {
         throw crearError("backend_no_disponible", `HTTP ${respuesta.status}`, respuesta.status);
       }
-      throw crearError("error_inesperado", `HTTP ${respuesta.status}`, respuesta.status);
+      throw crearError("error_inesperado", `HTTP ${respuesta.status}`, respuesta.status, mensaje);
     }
 
-    return (await respuesta.json()) as T;
+    try {
+      return (await respuesta.json()) as T;
+    } catch {
+      throw crearError("respuesta_inesperada", "JSON inválido", respuesta.status);
+    }
   } catch (error) {
     if (esApiError(error)) throw error;
     if (error instanceof DOMException && error.name === "AbortError") {
@@ -113,30 +127,23 @@ async function request<T>(
   }
 }
 
-/* ── Endpoints ─────────────────────────────────────────────── */
+/* ── Endpoints reales ──────────────────────────────────────── */
 
 export async function getHealth(signal?: AbortSignal): Promise<HealthResponse> {
-  if (DEMO_MODE) return demoHealth();
   return request<HealthResponse>(ENDPOINTS.health, { signal });
 }
 
 export async function validarMolecula(
-  datos: ValidateRequest,
+  datos: SMILESInput,
   signal?: AbortSignal,
 ): Promise<ValidateResponse> {
-  if (DEMO_MODE) return demoValidate(datos.smiles);
-  return request<ValidateResponse>(ENDPOINTS.validate, {
-    method: "POST",
-    body: datos,
-    signal,
-  });
+  return request<ValidateResponse>(ENDPOINTS.validate, { method: "POST", body: datos, signal });
 }
 
 export async function obtenerDescriptores(
-  datos: DescriptorsRequest,
+  datos: SMILESInput,
   signal?: AbortSignal,
 ): Promise<DescriptorsResponse> {
-  if (DEMO_MODE) return demoDescriptors(datos.smiles);
   return request<DescriptorsResponse>(ENDPOINTS.descriptors, {
     method: "POST",
     body: datos,
@@ -145,18 +152,16 @@ export async function obtenerDescriptores(
 }
 
 export async function renderizarMolecula(
-  datos: RenderRequest,
+  datos: RenderInput,
   signal?: AbortSignal,
 ): Promise<RenderResponse> {
-  if (DEMO_MODE) return demoRender();
   return request<RenderResponse>(ENDPOINTS.render, { method: "POST", body: datos, signal });
 }
 
 export async function predecirEgfr(
-  datos: PredictionRequest,
+  datos: SMILESInput,
   signal?: AbortSignal,
 ): Promise<PredictionResponse> {
-  if (DEMO_MODE) return demoPrediction(datos.smiles);
   return request<PredictionResponse>(ENDPOINTS.predictionEgfr, {
     method: "POST",
     body: datos,
@@ -165,30 +170,26 @@ export async function predecirEgfr(
 }
 
 export async function buscarSimilares(
-  datos: SimilaritySearchRequest,
+  datos: SimilarityInput,
   signal?: AbortSignal,
-): Promise<SimilaritySearchResponse> {
-  if (DEMO_MODE) return demoSimilarity(datos.limite ?? 5);
-  return request<SimilaritySearchResponse>(ENDPOINTS.similaritySearch, {
+): Promise<SimilarityResponse> {
+  return request<SimilarityResponse>(ENDPOINTS.similaritySearch, {
     method: "POST",
-    body: datos,
+    body: { smiles: datos.smiles, limit: datos.limit ?? 5 },
     signal,
   });
 }
 
-export async function obtenerModeloActual(signal?: AbortSignal): Promise<ModelInfo> {
-  if (DEMO_MODE) return demoModelInfo();
-  return request<ModelInfo>(ENDPOINTS.modelCurrent, { signal });
+export async function obtenerModeloActual(signal?: AbortSignal): Promise<ModelInfoResponse> {
+  return request<ModelInfoResponse>(ENDPOINTS.modelCurrent, { signal });
 }
 
-export async function obtenerMetricasModelo(signal?: AbortSignal): Promise<ModelMetrics> {
-  if (DEMO_MODE) return demoModelMetrics();
-  return request<ModelMetrics>(ENDPOINTS.modelMetrics, { signal });
+export async function obtenerMetricasModelo(signal?: AbortSignal): Promise<ModelMetricsResponse> {
+  return request<ModelMetricsResponse>(ENDPOINTS.modelMetrics, { signal });
 }
 
-export async function obtenerResumenDataset(signal?: AbortSignal): Promise<DatasetSummary> {
-  if (DEMO_MODE) return demoDatasetSummary();
-  return request<DatasetSummary>(ENDPOINTS.datasetSummary, { signal });
+export async function obtenerResumenDataset(signal?: AbortSignal): Promise<DatasetSummaryResponse> {
+  return request<DatasetSummaryResponse>(ENDPOINTS.datasetSummary, { signal });
 }
 
 export { DEMO_MODE, API_BASE_URL, API_CONFIGURADA };

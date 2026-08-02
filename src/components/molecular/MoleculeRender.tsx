@@ -1,8 +1,8 @@
 import { MoleculeArt } from "@/components/molecular/MoleculeArt";
 
 /**
- * Muestra el SVG molecular generado por el backend cuando está disponible.
- * En modo demostración (svg vacío) conserva la ilustración abstracta actual.
+ * Muestra el SVG molecular generado por RDKit en el backend cuando está
+ * disponible. Si no hay SVG, conserva la ilustración abstracta actual.
  */
 export function MoleculeRender({
   svg,
@@ -13,14 +13,16 @@ export function MoleculeRender({
   seed?: number;
   className?: string;
 }) {
-  if (svg && svg.trim().startsWith("<svg")) {
+  if (svg && svg.includes("<svg")) {
+    // Se elimina el prólogo XML para poder insertar el SVG en el documento HTML.
+    const limpio = svg.slice(svg.indexOf("<svg"));
     return (
       <div
         className={className}
         role="img"
-        aria-label="Estructura molecular generada por el servicio de predicción"
+        aria-label="Estructura molecular 2D generada con RDKit"
         // El SVG proviene del backend propio de MolPredict.
-        dangerouslySetInnerHTML={{ __html: svg }}
+        dangerouslySetInnerHTML={{ __html: limpio }}
       />
     );
   }
