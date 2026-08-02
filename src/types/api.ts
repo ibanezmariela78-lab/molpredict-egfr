@@ -1,7 +1,7 @@
 /**
  * Contratos TypeScript de la API FastAPI de MolPredict EGFR.
- * Estos tipos describen las respuestas esperadas del backend real.
- * Todavía no hay backend conectado: se usan en modo demostración.
+ * Reflejan exactamente los esquemas publicados en /openapi.json
+ * (https://molpredict-egfr-api--ibanezmariela78.replit.app/openapi.json).
  */
 
 /* ── Errores ───────────────────────────────────────────────── */
@@ -11,6 +11,8 @@ export type CodigoErrorApi =
   | "backend_no_disponible"
   | "error_conexion"
   | "tiempo_agotado"
+  | "respuesta_inesperada"
+  | "error_validacion"
   | "error_inesperado";
 
 export interface ApiError {
@@ -22,160 +24,175 @@ export interface ApiError {
   status?: number;
 }
 
+/** Cuerpo de error devuelto por el backend FastAPI. */
+export interface BackendErrorBody {
+  error?: string;
+  message?: string;
+  detail?: unknown;
+}
+
 /* ── Salud del servicio ────────────────────────────────────── */
 
 export interface HealthResponse {
-  status: "ok" | "degraded" | "down";
+  status: string;
+  service?: string;
+  environment?: string;
+  demo_mode?: boolean;
+  rdkit_available?: boolean;
   version?: string;
-  uptimeSegundos?: number;
+}
+
+/* ── Entradas ──────────────────────────────────────────────── */
+
+export interface SMILESInput {
+  smiles: string;
+}
+
+export interface RenderInput {
+  smiles: string;
+  width?: number;
+  height?: number;
+}
+
+export interface SimilarityInput {
+  smiles: string;
+  limit?: number;
 }
 
 /* ── Validación molecular ──────────────────────────────────── */
 
-export interface ValidateRequest {
-  smiles: string;
-}
-
 export interface ValidateResponse {
-  valido: boolean;
-  mensaje: string;
-  smilesCanonico?: string;
-  formula?: string;
-  advertencias?: string[];
+  valid: boolean;
+  input_smiles: string;
+  canonical_smiles: string;
+  molecular_formula: string;
+  atom_count: number;
+  heavy_atom_count: number;
+  message: string;
 }
 
-/* ── Descriptores fisicoquímicos y Lipinski ────────────────── */
+/* ── Descriptores y Lipinski ───────────────────────────────── */
 
-export interface DescriptorApi {
-  clave: string;
-  nombre: string;
-  valor: number;
-  unidad?: string;
-  min?: number;
-  max?: number;
+export interface LipinskiCriterion {
+  name: string;
+  value: number;
+  threshold: string;
+  passes: boolean;
 }
 
-export interface ReglaLipinskiApi {
-  criterio: string;
-  valor: string;
-  limite: string;
-  cumple: boolean;
-}
-
-export interface DescriptorsRequest {
-  smiles: string;
+export interface LipinskiEvaluation {
+  criteria: LipinskiCriterion[];
+  passed_count: number;
+  total_count: number;
+  summary: string;
 }
 
 export interface DescriptorsResponse {
-  smilesCanonico: string;
-  formula: string;
-  descriptores: DescriptorApi[];
-  lipinski: ReglaLipinskiApi[];
-  criteriosCumplidos: number;
-  criteriosTotales: number;
+  canonical_smiles: string;
+  molecular_formula: string;
+  molecular_weight: number;
+  logp: number;
+  tpsa: number;
+  h_bond_donors: number;
+  h_bond_acceptors: number;
+  rotatable_bonds: number;
+  aromatic_rings: number;
+  fraction_csp3: number;
+  formal_charge: number;
+  atom_count: number;
+  heavy_atom_count: number;
+  ring_count: number;
+  lipinski_violations: number;
+  lipinski: LipinskiEvaluation;
+  disclaimer?: string;
 }
 
 /* ── Renderizado SVG ───────────────────────────────────────── */
 
-export interface RenderRequest {
-  smiles: string;
-  ancho?: number;
-  alto?: number;
-}
-
 export interface RenderResponse {
-  /** Marcado SVG generado por RDKit en el backend. */
+  canonical_smiles: string;
+  format?: string;
+  width: number;
+  height: number;
   svg: string;
-  ancho: number;
-  alto: number;
 }
 
 /* ── Predicción EGFR ───────────────────────────────────────── */
 
-export interface DominioAplicabilidad {
-  dentroDelDominio: boolean;
-  etiqueta: string;
-  similitudMaxima: number;
-  nivelConfianza: "Alta" | "Media" | "Baja";
-}
-
-export interface ContribucionApi {
-  nombre: string;
-  contribucion: number;
-}
-
-export interface InterpretacionPrediccion {
-  factoresFavorables: string[];
-  factoresDesfavorables: string[];
-  contribuciones: ContribucionApi[];
-}
-
-export interface PredictionRequest {
-  smiles: string;
+export interface ApplicabilityDomain {
+  inside_domain: boolean;
+  maximum_similarity: number;
+  confidence: string;
+  method?: string;
 }
 
 export interface PredictionResponse {
-  smilesCanonico: string;
-  formula: string;
-  pIC50: number;
-  ic50nM: number;
-  confianza: "Alta" | "Media" | "Baja";
-  modelo: string;
-  dominio: DominioAplicabilidad;
-  descriptores: DescriptorApi[];
-  lipinski: ReglaLipinskiApi[];
-  interpretacion: InterpretacionPrediccion;
+  canonical_smiles: string;
+  pic50_prediction: number;
+  ic50_nm_prediction: number;
+  activity_label: string;
+  confidence: string;
+  prediction_mode?: string;
+  scientifically_validated?: boolean;
+  model_version: string;
+  descriptors: Record<string, number | string | boolean | null>;
+  applicability_domain: ApplicabilityDomain;
+  favorable_factors: string[];
+  unfavorable_factors: string[];
+  disclaimer?: string;
 }
 
 /* ── Moléculas similares ───────────────────────────────────── */
 
-export interface MoleculaSimilarApi {
-  id: string;
-  nombre: string;
-  smiles: string;
-  tanimoto: number;
-  pIC50Experimental: number;
+export interface SimilarCompound {
+  name: string;
+  canonical_smiles: string;
+  similarity: number;
+  experimental_pic50_demo: number;
+  data_mode: string;
+  molecular_formula: string;
 }
 
-export interface SimilaritySearchRequest {
-  smiles: string;
-  limite?: number;
-  umbral?: number;
-}
-
-export interface SimilaritySearchResponse {
-  resultados: MoleculaSimilarApi[];
-  total: number;
+export interface SimilarityResponse {
+  query_smiles: string;
+  results: SimilarCompound[];
+  method?: string;
+  disclaimer?: string;
 }
 
 /* ── Modelo y métricas ─────────────────────────────────────── */
 
-export interface ModelInfo {
-  nombre: string;
+export interface ModelInfoResponse {
+  name: string;
   version: string;
-  algoritmo: string;
-  fechaEntrenamiento: string;
-  fingerprint: string;
-  descripcion?: string;
+  status: string;
+  task: string;
+  target: string;
+  endpoint: string;
+  trained: boolean;
+  validated: boolean;
+  message: string;
 }
 
-export interface ModelMetrics {
-  r2: number;
-  rmse: number;
-  mae: number;
-  q2?: number;
-  validacion: string;
-  nEntrenamiento: number;
-  nPrueba: number;
+export interface ModelMetricsResponse {
+  available: boolean;
+  metrics?: unknown;
+  message: string;
 }
 
 /* ── Resumen del dataset ───────────────────────────────────── */
 
-export interface DatasetSummary {
-  fuente: string;
-  target: string;
-  totalCompuestos: number;
-  rangoPIC50: { min: number; max: number };
-  fechaExtraccion: string;
-  filtrosAplicados?: string[];
+export interface DatasetCompoundSummary {
+  id: string;
+  name: string;
+  data_mode: string;
+}
+
+export interface DatasetSummaryResponse {
+  total_compounds: number;
+  compounds: DatasetCompoundSummary[];
+  data_mode: string;
+  source: string;
+  generation_date: string;
+  disclaimer: string;
 }

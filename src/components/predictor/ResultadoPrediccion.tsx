@@ -8,15 +8,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import {
-  AlertTriangle,
-  Check,
-  Copy,
-  Gauge,
-  Minus,
-  Plus,
-  ShieldCheck,
-} from "lucide-react";
+import { AlertTriangle, Check, Copy, Gauge, Minus, Plus, ShieldCheck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -33,18 +25,47 @@ import { MoleculeThumb } from "@/components/molecular/MoleculeArt";
 import { MoleculeRender } from "@/components/molecular/MoleculeRender";
 import { ScientificDisclaimer } from "@/components/common/ScientificDisclaimer";
 import { ChartPanel } from "@/components/common/ChartPanel";
-import {
-  DEMO_MOLPREDICT,
-  TEXTOS_DEMO,
-  type MoleculaSimilarDemo,
-} from "@/data/molpredictDemoData";
+import { DEMO_MOLPREDICT, TEXTOS_DEMO } from "@/data/molpredictDemoData";
 import { DEMO_MODE } from "@/config/api";
+import type { MoleculaSimilar, ResultadoAnalisis } from "@/lib/mapResultado";
 import { formatearNumero } from "@/utils/molecula";
+
+/** Resultado demostrativo usado únicamente cuando VITE_DEMO_MODE=true. */
+const RESULTADO_DEMO: ResultadoAnalisis = {
+  smilesCanonico: DEMO_MOLPREDICT.smiles,
+  formula: DEMO_MOLPREDICT.formula,
+  descriptores: [...DEMO_MOLPREDICT.descriptores],
+  lipinski: [...DEMO_MOLPREDICT.lipinski],
+  flexibilidad: [...DEMO_MOLPREDICT.flexibilidad],
+  pIC50: DEMO_MOLPREDICT.pIC50,
+  ic50nM: DEMO_MOLPREDICT.ic50nM,
+  etiquetaActividad: "Actividad potencial alta",
+  confianza: DEMO_MOLPREDICT.confianza,
+  modelo: DEMO_MOLPREDICT.modelo,
+  validadoCientificamente: false,
+  dominio: {
+    etiqueta: DEMO_MOLPREDICT.dominio.etiqueta,
+    similitudMaxima: DEMO_MOLPREDICT.dominio.similitudMaxima,
+    nivelConfianza: DEMO_MOLPREDICT.dominio.nivelConfianza,
+  },
+  interpretacion: {
+    favorables: [...DEMO_MOLPREDICT.interpretacion.favorables],
+    desfavorables: [...DEMO_MOLPREDICT.interpretacion.desfavorables],
+  },
+  contribuciones: [...DEMO_MOLPREDICT.contribuciones],
+  similares: DEMO_MOLPREDICT.similares.map((s) => ({
+    id: s.id,
+    nombre: s.nombre,
+    smiles: s.smiles,
+    tanimoto: s.tanimoto,
+    pIC50Experimental: s.pIC50Experimental,
+  })),
+};
 
 function MedidorDominio({ valor, etiqueta }: { valor: number; etiqueta: string }) {
   const radio = 60;
   const circunferencia = Math.PI * radio;
-  const avance = circunferencia * valor;
+  const avance = circunferencia * Math.min(1, Math.max(0, valor));
   return (
     <svg
       viewBox="0 0 160 90"
@@ -81,18 +102,27 @@ function MedidorDominio({ valor, etiqueta }: { valor: number; etiqueta: string }
   );
 }
 
-export function ResultadoPrediccion({ smiles, svg }: { smiles: string; svg?: string }) {
+export function ResultadoPrediccion({
+  smiles,
+  svg,
+  datos,
+}: {
+  smiles: string;
+  svg?: string;
+  datos?: ResultadoAnalisis;
+}) {
   const [copiado, setCopiado] = useState(false);
-  const [comparado, setComparado] = useState<MoleculaSimilarDemo | null>(null);
-  const p = DEMO_MOLPREDICT;
+  const [comparado, setComparado] = useState<MoleculaSimilar | null>(null);
+  const p = datos ?? RESULTADO_DEMO;
   const demo = DEMO_MODE;
+  const svgFinal = svg ?? p.svg;
   const potencia = Math.min(100, Math.max(0, ((p.pIC50 - 4) / 6) * 100));
   const cumplidasClasicas = p.lipinski.filter((l) => l.cumple).length;
   const flexOk = p.flexibilidad.every((f) => f.cumple);
 
   const copiar = async () => {
     try {
-      await navigator.clipboard.writeText(smiles || p.smiles);
+      await navigator.clipboard.writeText(p.smilesCanonico || smiles);
       setCopiado(true);
       setTimeout(() => setCopiado(false), 1800);
     } catch {
@@ -114,11 +144,15 @@ export function ResultadoPrediccion({ smiles, svg }: { smiles: string; svg?: str
           <CardContent className="space-y-4">
             <div className="grid place-items-center rounded-xl border border-border bg-surface/70 hex-pattern p-4">
               <div className="h-40 w-40">
-                <MoleculeRender svg={svg} seed={3} />
+                <MoleculeRender svg={svgFinal} seed={3} />
               </div>
               {demo ? (
                 <p className="text-[11px] text-muted-foreground">{TEXTOS_DEMO.ilustracion}</p>
-              ) : null}
+              ) : (
+                <p className="text-[11px] text-muted-foreground">
+                  Estructura 2D generada con RDKit.
+                </p>
+              )}
             </div>
 
             <div className="space-y-1">
@@ -126,7 +160,7 @@ export function ResultadoPrediccion({ smiles, svg }: { smiles: string; svg?: str
                 SMILES canónico
               </span>
               <p className="break-all rounded-lg bg-muted px-3 py-2 font-mono text-xs">
-                {smiles || p.smiles}
+                {p.smilesCanonico || smiles}
               </p>
             </div>
 
@@ -166,9 +200,7 @@ export function ResultadoPrediccion({ smiles, svg }: { smiles: string; svg?: str
           </CardHeader>
           <CardContent className="space-y-6">
             <div>
-              <span className="text-xs tracking-wide text-muted-foreground">
-                pIC50 estimado
-              </span>
+              <span className="text-xs tracking-wide text-muted-foreground">pIC50 estimado</span>
               <p className="font-display text-6xl font-semibold leading-none text-foreground">
                 {p.pIC50.toFixed(2)}
               </p>
@@ -192,13 +224,13 @@ export function ResultadoPrediccion({ smiles, svg }: { smiles: string; svg?: str
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <StatusBadge tono="alta">Actividad potencial alta</StatusBadge>
+              <StatusBadge tono="alta">{p.etiquetaActividad}</StatusBadge>
               <StatusBadge tono="media">
                 <Gauge className="h-3.5 w-3.5" aria-hidden="true" />
                 Confianza: {p.confianza}
               </StatusBadge>
               <StatusBadge tono="info">{p.modelo}</StatusBadge>
-              {demo ? (
+              {!p.validadoCientificamente ? (
                 <EducationalTooltip
                   texto={TEXTOS_DEMO.modeloTooltip}
                   etiqueta="el modelo de simulación"
@@ -206,9 +238,9 @@ export function ResultadoPrediccion({ smiles, svg }: { smiles: string; svg?: str
               ) : null}
             </div>
 
-            {demo ? (
+            {!p.validadoCientificamente ? (
               <p className="text-xs leading-relaxed text-muted-foreground">
-                {TEXTOS_DEMO.prediccionNota}
+                {p.notaPrediccion ?? TEXTOS_DEMO.prediccionNota}
               </p>
             ) : null}
           </CardContent>
@@ -219,15 +251,15 @@ export function ResultadoPrediccion({ smiles, svg }: { smiles: string; svg?: str
       <section>
         <div className="flex flex-wrap items-center gap-2">
           <h2 className="text-xl font-semibold">Descriptores fisicoquímicos</h2>
-          {demo ? (
-            <>
-              <StatusBadge tono="info">Valores de referencia</StatusBadge>
-            </>
-          ) : null}
+          {demo ? <StatusBadge tono="info">Valores de referencia</StatusBadge> : null}
         </div>
         {demo ? (
           <p className="mt-1 text-xs text-muted-foreground">{TEXTOS_DEMO.descriptoresNota}</p>
-        ) : null}
+        ) : (
+          <p className="mt-1 text-xs text-muted-foreground">
+            Valores calculados con RDKit a partir del SMILES ingresado.
+          </p>
+        )}
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {p.descriptores.map((d) => (
             <DescriptorCard key={d.clave} descriptor={d} />
@@ -266,38 +298,47 @@ export function ResultadoPrediccion({ smiles, svg }: { smiles: string; svg?: str
               </ul>
             </div>
 
-            <div className="space-y-2 border-t border-border pt-4">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Criterio adicional de flexibilidad
-              </h3>
-              <ul className="space-y-2">
-                {p.flexibilidad.map((l) => (
-                  <li
-                    key={l.criterio}
-                    className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-border/60 px-3 py-2 text-sm"
-                  >
-                    {l.cumple ? (
-                      <Check className="h-4 w-4 shrink-0 text-success" aria-hidden="true" />
-                    ) : (
-                      <AlertTriangle className="h-4 w-4 shrink-0 text-warning" aria-hidden="true" />
-                    )}
-                    <span className="min-w-0 truncate">{l.criterio}</span>
-                    <span className="font-mono text-xs text-muted-foreground">
-                      {l.valor} · {l.limite}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                {TEXTOS_DEMO.flexibilidadNota}
-              </p>
-            </div>
+            {p.flexibilidad.length > 0 ? (
+              <div className="space-y-2 border-t border-border pt-4">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Criterio adicional de flexibilidad
+                </h3>
+                <ul className="space-y-2">
+                  {p.flexibilidad.map((l) => (
+                    <li
+                      key={l.criterio}
+                      className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border border-border/60 px-3 py-2 text-sm"
+                    >
+                      {l.cumple ? (
+                        <Check className="h-4 w-4 shrink-0 text-success" aria-hidden="true" />
+                      ) : (
+                        <AlertTriangle
+                          className="h-4 w-4 shrink-0 text-warning"
+                          aria-hidden="true"
+                        />
+                      )}
+                      <span className="min-w-0 truncate">{l.criterio}</span>
+                      <span className="font-mono text-xs text-muted-foreground">
+                        {l.valor} · {l.limite}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  {TEXTOS_DEMO.flexibilidadNota}
+                </p>
+              </div>
+            ) : null}
 
             <p className="text-sm font-medium">
-              La molécula cumple {cumplidasClasicas} de {p.lipinski.length} criterios clásicos de
-              Lipinski y presenta {flexOk ? "una observación favorable" : "una observación adicional"}{" "}
-              de flexibilidad.
+              {p.resumenLipinski ??
+                `La molécula cumple ${cumplidasClasicas} de ${p.lipinski.length} criterios clásicos de Lipinski y presenta ${
+                  flexOk ? "una observación favorable" : "una observación adicional"
+                } de flexibilidad.`}
             </p>
+            {p.notaLipinski ? (
+              <p className="text-xs leading-relaxed text-muted-foreground">{p.notaLipinski}</p>
+            ) : null}
           </CardContent>
         </Card>
 
@@ -311,7 +352,9 @@ export function ResultadoPrediccion({ smiles, svg }: { smiles: string; svg?: str
               <MedidorDominio
                 valor={p.dominio.similitudMaxima}
                 etiqueta={
-                  demo ? TEXTOS_DEMO.dominioSubtitulo : "Similitud máxima con el conjunto de referencia"
+                  demo
+                    ? TEXTOS_DEMO.dominioSubtitulo
+                    : "Similitud máxima con el conjunto de referencia"
                 }
               />
               <span className="text-center text-xs text-muted-foreground">
@@ -322,9 +365,7 @@ export function ResultadoPrediccion({ smiles, svg }: { smiles: string; svg?: str
             </div>
             <div className="flex flex-wrap gap-2">
               <StatusBadge tono="alta">{p.dominio.etiqueta}</StatusBadge>
-              <StatusBadge tono="media">
-                Nivel de confianza: {p.dominio.nivelConfianza}
-              </StatusBadge>
+              <StatusBadge tono="media">Nivel de confianza: {p.dominio.nivelConfianza}</StatusBadge>
             </div>
             <p className="text-xs leading-relaxed text-muted-foreground">
               {demo
@@ -339,10 +380,12 @@ export function ResultadoPrediccion({ smiles, svg }: { smiles: string; svg?: str
       <Card className="card-soft border-border/70">
         <CardHeader className="flex flex-wrap items-center gap-2">
           <CardTitle className="text-base">Interpretación de la predicción</CardTitle>
-          {demo ? <StatusBadge tono="info">Interpretación ilustrativa</StatusBadge> : null}
+          {!p.validadoCientificamente ? (
+            <StatusBadge tono="info">Interpretación ilustrativa</StatusBadge>
+          ) : null}
         </CardHeader>
         <CardContent className="space-y-6">
-          {demo ? (
+          {!p.validadoCientificamente ? (
             <p className="text-xs leading-relaxed text-muted-foreground">
               {TEXTOS_DEMO.interpretacionNota}
             </p>
@@ -353,6 +396,11 @@ export function ResultadoPrediccion({ smiles, svg }: { smiles: string; svg?: str
                 <Plus className="h-4 w-4" aria-hidden="true" /> Factores favorables
               </h3>
               <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                {p.interpretacion.favorables.length === 0 ? (
+                  <li className="rounded-lg border border-border/60 px-3 py-2">
+                    El servicio no informó factores favorables.
+                  </li>
+                ) : null}
                 {p.interpretacion.favorables.map((f) => (
                   <li key={f} className="rounded-lg border border-success/25 bg-success/5 px-3 py-2">
                     {f}
@@ -365,6 +413,11 @@ export function ResultadoPrediccion({ smiles, svg }: { smiles: string; svg?: str
                 <Minus className="h-4 w-4" aria-hidden="true" /> Factores desfavorables
               </h3>
               <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                {p.interpretacion.desfavorables.length === 0 ? (
+                  <li className="rounded-lg border border-border/60 px-3 py-2">
+                    El servicio no informó factores desfavorables.
+                  </li>
+                ) : null}
                 {p.interpretacion.desfavorables.map((f) => (
                   <li key={f} className="rounded-lg border border-warning/30 bg-warning/5 px-3 py-2">
                     {f}
@@ -374,94 +427,95 @@ export function ResultadoPrediccion({ smiles, svg }: { smiles: string; svg?: str
             </div>
           </div>
 
-          <ChartPanel
-            titulo={demo ? TEXTOS_DEMO.contribucionesTitulo : "Contribuciones por descriptor"}
-            descripcion={
-              demo
-                ? TEXTOS_DEMO.contribucionesSubtitulo
-                : "Contribuciones devueltas por el servicio de predicción."
-            }
-          >
-            <div className="h-80 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  layout="vertical"
-                  data={[...p.contribuciones]}
-                  margin={{ left: 20, right: 20 }}
-                >
-                  <XAxis type="number" tick={{ fontSize: 12 }} stroke="var(--muted-foreground)" />
-                  <YAxis
-                    type="category"
-                    dataKey="nombre"
-                    width={140}
-                    tick={{ fontSize: 12 }}
-                    stroke="var(--muted-foreground)"
-                  />
-                  <RTooltip
-                    cursor={{ fill: "var(--muted)" }}
-                    contentStyle={{
-                      background: "var(--popover)",
-                      border: "1px solid var(--border)",
-                      borderRadius: 12,
-                      fontSize: 12,
-                    }}
-                  />
-                  <Bar dataKey="contribucion" radius={[4, 4, 4, 4]}>
-                    {p.contribuciones.map((c) => (
-                      <Cell
-                        key={c.nombre}
-                        fill={c.contribucion >= 0 ? "var(--teal)" : "var(--warning)"}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </ChartPanel>
+          {p.contribuciones.length > 0 ? (
+            <ChartPanel
+              titulo={TEXTOS_DEMO.contribucionesTitulo}
+              descripcion={TEXTOS_DEMO.contribucionesSubtitulo}
+            >
+              <div className="h-80 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    layout="vertical"
+                    data={[...p.contribuciones]}
+                    margin={{ left: 20, right: 20 }}
+                  >
+                    <XAxis type="number" tick={{ fontSize: 12 }} stroke="var(--muted-foreground)" />
+                    <YAxis
+                      type="category"
+                      dataKey="nombre"
+                      width={140}
+                      tick={{ fontSize: 12 }}
+                      stroke="var(--muted-foreground)"
+                    />
+                    <RTooltip
+                      cursor={{ fill: "var(--muted)" }}
+                      contentStyle={{
+                        background: "var(--popover)",
+                        border: "1px solid var(--border)",
+                        borderRadius: 12,
+                        fontSize: 12,
+                      }}
+                    />
+                    <Bar dataKey="contribucion" radius={[4, 4, 4, 4]}>
+                      {p.contribuciones.map((c) => (
+                        <Cell
+                          key={c.nombre}
+                          fill={c.contribucion >= 0 ? "var(--teal)" : "var(--warning)"}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </ChartPanel>
+          ) : null}
         </CardContent>
       </Card>
 
       {/* Similares */}
-      <section>
-        <div className="grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-          <h2 className="min-w-0 text-xl font-semibold">Moléculas similares</h2>
-          {demo ? <StatusBadge tono="info">Datos ilustrativos</StatusBadge> : null}
-        </div>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          {p.similares.map((c, i) => (
-            <Card key={c.id} className="card-soft card-lift gap-3 border-border/70 p-4">
-              <div className="grid place-items-center rounded-lg border border-border bg-surface p-2">
-                <MoleculeThumb seed={i + 2} className="h-14 w-14" />
-              </div>
-              <h3 className="truncate text-sm font-semibold">{c.nombre}</h3>
-              <dl className="space-y-1 text-xs text-muted-foreground">
-                <div className="flex justify-between gap-2">
-                  <dt>Tanimoto</dt>
-                  <dd className="font-mono text-foreground">{c.tanimoto.toFixed(2)}</dd>
+      {p.similares.length > 0 ? (
+        <section>
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+            <h2 className="min-w-0 text-xl font-semibold">Moléculas similares</h2>
+            {demo ? <StatusBadge tono="info">Datos ilustrativos</StatusBadge> : null}
+          </div>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {p.similares.map((c, i) => (
+              <Card key={c.id} className="card-soft card-lift gap-3 border-border/70 p-4">
+                <div className="grid place-items-center rounded-lg border border-border bg-surface p-2">
+                  <MoleculeThumb seed={i + 2} className="h-14 w-14" />
                 </div>
-                <div className="flex justify-between gap-2">
-                  <dt>pIC50 exp.</dt>
-                  <dd className="font-mono text-foreground">
-                    {formatearNumero(c.pIC50Experimental)}
-                  </dd>
-                </div>
-              </dl>
-              <Button
-                size="sm"
-                variant="outline"
-                className="w-full"
-                onClick={() => setComparado(c)}
-                aria-label={`Comparar ${c.nombre} con la molécula de referencia`}
-              >
-                Comparar
-              </Button>
-            </Card>
-          ))}
-        </div>
-        {demo ? (
-          <p className="mt-3 text-xs text-muted-foreground">{TEXTOS_DEMO.similaresNota}</p>
-        ) : null}
-      </section>
+                <h3 className="truncate text-sm font-semibold">{c.nombre}</h3>
+                <dl className="space-y-1 text-xs text-muted-foreground">
+                  <div className="flex justify-between gap-2">
+                    <dt>Tanimoto</dt>
+                    <dd className="font-mono text-foreground">{c.tanimoto.toFixed(2)}</dd>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <dt>pIC50 exp.</dt>
+                    <dd className="font-mono text-foreground">
+                      {formatearNumero(c.pIC50Experimental)}
+                    </dd>
+                  </div>
+                </dl>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => setComparado(c)}
+                  aria-label={`Comparar ${c.nombre} con la molécula analizada`}
+                >
+                  Comparar
+                </Button>
+              </Card>
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-muted-foreground">
+            {p.notaSimilares ?? TEXTOS_DEMO.similaresNota}
+            {p.metodoSimilitud ? ` Método: ${p.metodoSimilitud}.` : ""}
+          </p>
+        </section>
+      ) : null}
 
       <Dialog open={comparado !== null} onOpenChange={(abierto) => !abierto && setComparado(null)}>
         <DialogContent className="sm:max-w-lg">
@@ -475,11 +529,10 @@ export function ResultadoPrediccion({ smiles, svg }: { smiles: string; svg?: str
           </DialogHeader>
           {comparado ? (
             <div className="space-y-4">
-              {demo ? <StatusBadge tono="info">Comparación demostrativa</StatusBadge> : null}
               <div className="overflow-hidden rounded-xl border border-border">
                 <table className="w-full text-sm">
                   <caption className="sr-only">
-                    Comparación entre {comparado.nombre} y la molécula de referencia
+                    Comparación entre {comparado.nombre} y la molécula analizada
                   </caption>
                   <thead className="bg-muted/60 text-xs uppercase tracking-wide text-muted-foreground">
                     <tr>
@@ -490,7 +543,7 @@ export function ResultadoPrediccion({ smiles, svg }: { smiles: string; svg?: str
                         {comparado.nombre}
                       </th>
                       <th scope="col" className="px-3 py-2 text-right">
-                        Referencia
+                        Consulta
                       </th>
                     </tr>
                   </thead>
@@ -506,7 +559,7 @@ export function ResultadoPrediccion({ smiles, svg }: { smiles: string; svg?: str
                     </tr>
                     <tr className="border-t border-border">
                       <th scope="row" className="px-3 py-2 text-left font-normal">
-                        pIC50 experimental
+                        pIC50
                       </th>
                       <td className="px-3 py-2 text-right font-mono">
                         {formatearNumero(comparado.pIC50Experimental)}
