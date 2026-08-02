@@ -76,9 +76,8 @@ export function Footer() {
       <div className="border-t border-border">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-6 text-xs text-muted-foreground sm:px-6 lg:px-8">
           <p>
-            Disclaimer científico: MolPredict EGFR es una demostración educativa. Los valores
-            mostrados son simulados y no deben utilizarse para decisiones clínicas, regulatorias
-            ni experimentales.
+            Disclaimer científico: MolPredict EGFR es una demostración educativa. Los descriptores y la estructura 2D se calculan con RDKit. La predicción pIC50/IC50 es demostrativa, no está científicamente validada y no debe utilizarse para decisiones clínicas, regulatorias ni experimentales.
+            
           </p>
           <p>© {new Date().getFullYear()} MolPredict EGFR — Proyecto de portfolio.</p>
         </div>
