@@ -427,48 +427,7 @@ export function ResultadoPrediccion({
             </div>
           </div>
 
-          {p.contribuciones.length > 0 ? (
-            <ChartPanel
-              titulo={TEXTOS_DEMO.contribucionesTitulo}
-              descripcion={TEXTOS_DEMO.contribucionesSubtitulo}
-            >
-              <div className="h-80 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    layout="vertical"
-                    data={[...p.contribuciones]}
-                    margin={{ left: 20, right: 20 }}
-                  >
-                    <XAxis type="number" tick={{ fontSize: 12 }} stroke="var(--muted-foreground)" />
-                    <YAxis
-                      type="category"
-                      dataKey="nombre"
-                      width={140}
-                      tick={{ fontSize: 12 }}
-                      stroke="var(--muted-foreground)"
-                    />
-                    <RTooltip
-                      cursor={{ fill: "var(--muted)" }}
-                      contentStyle={{
-                        background: "var(--popover)",
-                        border: "1px solid var(--border)",
-                        borderRadius: 12,
-                        fontSize: 12,
-                      }}
-                    />
-                    <Bar dataKey="contribucion" radius={[4, 4, 4, 4]}>
-                      {p.contribuciones.map((c) => (
-                        <Cell
-                          key={c.nombre}
-                          fill={c.contribucion >= 0 ? "var(--teal)" : "var(--warning)"}
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </ChartPanel>
-          ) : null}
+         
         </CardContent>
       </Card>
 
