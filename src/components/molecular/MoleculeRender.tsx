@@ -18,7 +18,7 @@ export function MoleculeRender({
     const limpio = svg.slice(svg.indexOf("<svg"));
     return (
       <div
-        className={className}
+        className={`grid h-full w-full place-items-center overflow-hidden [&_svg]:h-full [&_svg]:w-full ${className ?? ""}`}
         role="img"
         aria-label="Estructura molecular 2D generada con RDKit"
         // El SVG proviene del backend propio de MolPredict.
