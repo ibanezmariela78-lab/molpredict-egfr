@@ -177,6 +177,11 @@ function Inicio() {
               Datos demostrativos
             </span>
           </div>
+
+          <p className="mt-12 max-w-md text-center text-xs leading-relaxed text-muted-foreground lg:max-w-sm">
+            Los valores de esta portada son ilustrativos y no provienen de un modelo de
+            inteligencia artificial entrenado.
+          </p>
         </div>
       </section>
 
