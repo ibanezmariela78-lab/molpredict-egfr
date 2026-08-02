@@ -178,7 +178,7 @@ function Inicio() {
             </span>
           </div>
 
-          <p className="mt-12 max-w-md text-center text-xs leading-relaxed text-muted-foreground lg:max-w-sm">
+          <p className="col-span-full mt-14 max-w-md justify-self-end text-center text-xs leading-relaxed text-muted-foreground lg:max-w-sm">
             Los valores de esta portada son ilustrativos y no provienen de un modelo de
             inteligencia artificial entrenado.
           </p>
