@@ -26,7 +26,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Plataforma experimental de análisis QSAR para estimar la actividad inhibitoria de compuestos frente al receptor EGFR. Proyecto de portfolio con datos demostrativos.",
+          "Plataforma experimental de quimioinformática para explorar propiedades moleculares y demostrar un futuro flujo QSAR orientado al receptor EGFR.",
       },
       {
         property: "og:title",
