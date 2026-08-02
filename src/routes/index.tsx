@@ -129,12 +129,12 @@ function Inicio() {
               Proyecto experimental de portfolio
             </StatusBadge>
             <h1 className="mt-5 text-4xl font-semibold leading-[1.08] text-foreground sm:text-5xl lg:text-[3.4rem]">
-              Predicción molecular impulsada por{" "}
-              <span className="brand-gradient-text">inteligencia artificial</span>
+              Análisis molecular y{" "}
+              <span className="brand-gradient-text">predicción computacional demostrativa</span>
             </h1>
             <p className="mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-              Plataforma experimental de análisis QSAR para estimar la actividad inhibitoria de
-              compuestos frente al receptor EGFR.
+              Plataforma experimental de quimioinformática para explorar propiedades moleculares y
+              demostrar un futuro flujo QSAR orientado al receptor EGFR.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild size="lg">
@@ -154,24 +154,28 @@ function Inicio() {
 
             <Card className="card-soft absolute -left-2 top-4 gap-0.5 border-border/70 px-4 py-3 sm:left-0">
               <span className="text-[10px] tracking-wide text-muted-foreground">
-                pIC50 estimado
+                pIC50 ilustrativo
               </span>
               <span className="font-display text-xl font-semibold text-teal">7.21</span>
             </Card>
 
             <Card className="card-soft absolute -right-1 top-1/3 gap-0.5 border-border/70 px-4 py-3">
               <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                Confianza
+                Confianza demo
               </span>
-              <span className="font-display text-base font-semibold">Media</span>
+              <span className="font-display text-base font-semibold">Demo</span>
             </Card>
 
             <Card className="card-soft absolute bottom-2 left-6 gap-0.5 border-border/70 px-4 py-3">
               <span className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                Dominio
+                Dominio ilustrativo
               </span>
-              <span className="font-display text-base font-semibold">Dentro</span>
+              <span className="font-display text-base font-semibold">Ilustrativo</span>
             </Card>
+
+            <span className="absolute inset-x-0 -bottom-7 mx-auto block w-fit rounded-full border border-border/70 bg-card/80 px-3 py-1 text-center text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Datos demostrativos
+            </span>
           </div>
         </div>
       </section>
