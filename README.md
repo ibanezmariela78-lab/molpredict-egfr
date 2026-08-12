@@ -1,6 +1,5 @@
 # 🧬 MolPredict EGFR
-<img width="1533" height="748" alt="image" src="https://github.com/user-attachments/assets/00ca0a93-fdbe-4e9f-a2cf-04f18cf12b4a" />
-
+<img width="1440" height="678" alt="Captura de pantalla 2026-08-12 200345" src="https://github.com/user-attachments/assets/0509ac03-9c4d-41f6-80cf-3d1fd0ccb8b3" />
 
 
 **Plataforma experimental de quimioinformática para análisis molecular y predicción computacional demostrativa de actividad frente a EGFR.**
